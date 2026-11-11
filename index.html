@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}</style>
+<title>Python Quiz Practice</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@600;800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one question per screen. Header = progress through the 4 project steps. Next unlocks only after the right answer.
+   Colours match "A Day with Python": project magenta, plus one colour per project step. */
+:root{
+  --bg:#eef2f8; --surface:#ffffff; --surface-2:#e5ecf6; --line:#cfd9e8;
+  --ink:#13203a; --ink-dim:#4d5d78;
+  --accent:#a61e8c; --s1:#1f63d6; --s2:#d9480f; --s3:#0b7f8f; --s4:#a61e8c;
+  --right:#2b8a3e; --right-bg:#e3f6e7; --wrong:#c92a4b; --wrong-bg:#fde8ec; --gold:#f5b000;
+  --code-bg:#1b1f27; --code-ink:#e8edf6; --code-dim:#6b7486;
+  --kw:#ff7a90; --str:#b5e48c; --num:#c9a0ff; --fn:#6fd3ff;
+  --f-head:"Lexend","Segoe UI",Arial,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",Arial,sans-serif;
+  --f-code:"JetBrains Mono",Consolas,"Courier New",monospace;
+  --topic:var(--accent);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1522; --surface:#182134; --surface-2:#212c42; --line:#2e3b56; --ink:#eaf0fa; --ink-dim:#a6b4ca;
+  --accent:#e463c9; --s1:#5b9bff; --s2:#ff8a4c; --s3:#3cc6d6; --s4:#e463c9;
+  --right:#51cf66; --right-bg:#163322; --wrong:#ff6b88; --wrong-bg:#3a1822; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1522; --surface:#182134; --surface-2:#212c42; --line:#2e3b56; --ink:#eaf0fa; --ink-dim:#a6b4ca;
+  --accent:#e463c9; --s1:#5b9bff; --s2:#ff8a4c; --s3:#3cc6d6; --s4:#e463c9;
+  --right:#51cf66; --right-bg:#163322; --wrong:#ff6b88; --wrong-bg:#3a1822; color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+code,pre,.mono,.code,.opt code{font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:clamp(17px,0.6vw + 13px,22px);line-height:1.5}
+body::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.app{height:100%;display:flex;flex-direction:column}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.st1{--topic:var(--s1)}.st2{--topic:var(--s2)}.st3{--topic:var(--s3)}.st4{--topic:var(--s4)}
+
+header{background:var(--surface);border-bottom:1px solid var(--line);padding-block:10px}
+.hrow{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:14px}
+.logo{font-family:var(--f-head);font-weight:800;white-space:nowrap}
+.logo span{color:var(--accent)}
+.bar{flex:1;height:12px;background:var(--surface-2);border-radius:6px;overflow:hidden;min-width:0}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--s1),var(--s2),var(--s3),var(--s4));transition:width .5s}
+.chip{display:flex;align-items:center;gap:6px;background:var(--surface-2);border-radius:999px;padding:4px 12px;font-family:var(--f-head);font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+.chip.bump{animation:bump .5s}
+@keyframes bump{50%{transform:scale(1.2)}}
+
+main{flex:1;overflow:auto;padding-block:clamp(16px,3vw,36px)}
+.stage{max-width:820px;margin:0 auto}
+.slide{display:flex;flex-direction:column;gap:16px;animation:slideIn .35s ease-out}
+@keyframes slideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.8rem;font-weight:700;color:var(--ink-dim)}
+.pill{background:var(--topic);color:#fff;border-radius:999px;padding:3px 12px;letter-spacing:.05em;text-transform:uppercase}
+.qtext{font-family:var(--f-head);font-weight:800;font-size:clamp(1.35rem,1.8vw + .5rem,2rem);line-height:1.25;margin:0}
+.ctx{margin:0;color:var(--ink-dim);font-size:1.05em}
+.code{background:var(--code-bg);color:var(--code-ink);border-radius:14px;overflow-x:auto;font-family:var(--f-code);line-height:1.7}
+.code pre{margin:0;padding:12px 0;counter-reset:ln}
+.code .ln{display:block;padding:0 14px 0 0;white-space:pre}
+.code .ln::before{counter-increment:ln;content:counter(ln);display:inline-block;width:2.2em;text-align:right;padding-right:12px;margin-right:12px;color:var(--code-dim);border-right:1px solid #2c323e}
+.t-kw{color:var(--kw)}.t-str{color:var(--str)}.t-num{color:var(--num)}.t-fn{color:var(--fn)}
+.opts{display:grid;gap:12px}
+.opt{display:grid;grid-template-columns:2.4em 1fr;gap:14px;align-items:center;text-align:left;font:inherit;font-size:1.08em;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-bottom-width:5px;border-radius:16px;padding:12px 16px;cursor:pointer;transition:transform .15s,border-color .15s}
+.opt:hover:not([disabled]){border-color:var(--topic);transform:translateY(-2px)}
+.opt .letter{width:2.4em;height:2.4em;border-radius:10px;display:grid;place-items:center;font-family:var(--f-head);font-weight:800;background:var(--surface-2);color:var(--topic)}
+.opt code{font-family:var(--f-code);font-size:.92em;white-space:pre-wrap}
+.opt[disabled]{cursor:default}
+.opt.right{border-color:var(--right);background:var(--right-bg);animation:pop .45s}
+.opt.right .letter{background:var(--right);color:#fff}
+.opt.wrong{border-color:var(--wrong);background:var(--wrong-bg);opacity:.75;animation:shake .4s}
+.opt.wrong .letter{background:var(--wrong);color:#fff}
+.opt.dim{opacity:.4}
+@keyframes pop{40%{transform:scale(1.04)}}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.fb{border-radius:16px;padding:12px 18px;background:var(--surface);border:3px solid var(--line);display:flex;flex-direction:column;gap:6px;animation:slideIn .3s}
+.fb.good{border-color:var(--right)}.fb.bad{border-color:var(--wrong)}
+.fb b.v{font-family:var(--f-head);font-weight:800;font-size:1.12rem}
+.fb.good b.v{color:var(--right)}.fb.bad b.v{color:var(--wrong)}
+.fb p{margin:0}
+.lock{font-size:.85rem;color:var(--ink-dim);font-weight:700}
+
+footer{background:var(--surface);border-top:1px solid var(--line);padding-block:12px;padding-bottom:max(12px,env(safe-area-inset-bottom,0px))}
+.frow{max-width:820px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.btn{font:inherit;cursor:pointer;border-radius:14px;border:2px solid var(--line);background:var(--surface);color:var(--ink);padding:.55em 1.4em;font-weight:700;font-size:1.05rem}
+.btn[disabled]{opacity:.35;cursor:not-allowed}
+.btn.primary{background:var(--topic);color:#fff;border-color:var(--topic);box-shadow:0 4px 0 rgba(0,0,0,.28)}
+.btn.pulse{animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.07)}}
+.btn.big{font-size:1.25rem;padding:.7em 1.8em}
+button:focus-visible{outline:3px solid var(--topic);outline-offset:2px}
+.pos{font-size:.85rem;color:var(--ink-dim);font-variant-numeric:tabular-nums}
+
+.intro,.end{align-items:center;text-align:center}
+.intro h1,.end h1{font-family:var(--f-head);font-weight:800;font-size:clamp(2rem,5vw,3.2rem);margin:0;line-height:1.1}
+.intro h1 span{color:var(--accent)}
+.lead{margin:0;font-size:1.15em;max-width:52ch}
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;width:100%}
+.steps div{background:var(--surface);border:2px solid var(--line);border-top:8px solid var(--topic);border-radius:14px;padding:12px;text-align:left;font-size:.9rem}
+.steps b{display:block;font-family:var(--f-head);color:var(--topic)}
+.rules{background:var(--surface-2);border-radius:14px;padding:12px 18px;text-align:left;max-width:560px}
+.rules p{margin:4px 0}
+.stars{display:flex;gap:10px;justify-content:center}
+.stars svg{width:72px;height:72px}
+.stars .s{fill:var(--line)}.stars .s.on{fill:var(--gold);animation:pop .6s backwards}
+.big-num{font-family:var(--f-head);font-weight:800;font-size:clamp(3rem,9vw,5rem);color:var(--accent);line-height:1}
+.confetti{position:fixed;top:-10px;width:10px;height:14px;z-index:40;pointer-events:none;animation:fall 1.6s ease-in forwards}
+@keyframes fall{to{transform:translate(var(--dx),105vh) rotate(var(--rot));opacity:.8}}
+@media (max-width:700px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}.logo{display:none}}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <header class="wrap"><div class="hrow"><div class="logo">THE PYTHON QUIZ <span>practice</span></div><div class="bar" aria-hidden="true"><i id="bar"></i></div><div class="chip" id="chip">★ <span id="pts">0</span></div></div></header>
+  <main class="wrap"><div class="stage" id="stage"></div></main>
+  <footer class="wrap"><div class="frow"><button class="btn" id="prev">← Back</button><span class="pos" id="pos"></span><button class="btn primary" id="next">Next →</button></div></footer>
+</div>
+
+<script>
+(function(){
+const STEPS={1:'Step 1: Welcome',2:'Step 2: Questions',3:'Step 3: Check answers',4:'Step 4: Finish'};
+/* q: question, ctx: optional context, code: optional code, opts, a: index of right answer, hint (after a wrong pick), why (after the right pick) */
+const Q=[
+ // STEP 1: print, input, variables
+ {s:1,q:'What does print() do?',opts:['It lets the player type something in.','It displays information on the screen.','It makes a decision.'],a:1,hint:'Think about what you see on the screen.',why:'print() displays information on the screen.'},
+ {s:1,q:'Your quiz must show the title THE PYTHON QUIZ! Which line does that?',opts:['print(THE PYTHON QUIZ!)','print("THE PYTHON QUIZ!")','input("THE PYTHON QUIZ!")'],code:1,a:1,hint:'Text needs quotation marks " " inside print().',why:'print() with the text inside quotation marks.'},
+ {s:1,q:'Which line has a mistake?',opts:['print("Hello")','print("Hello)','print("Hi there")'],code:1,a:1,hint:'Count the quotation marks in each line.',why:'print("Hello) is missing the closing quotation mark.'},
+ {s:1,q:'What does input() do?',opts:['It lets the player type something in.','It displays information on the screen.','It repeats instructions.'],a:0,hint:'In = the player puts something in.',why:'input() lets the player type something in.'},
+ {s:1,q:'What is a variable?',opts:['The repetition of instructions in a program.','A named location in a computer\'s memory that stores data which can change while a program runs.','Making a decision based on a condition.'],a:1,hint:'Which one talks about memory and data?',why:'A variable is a named location in a computer\'s memory that stores data which can change while a program runs.'},
+ {s:1,q:'Which line asks the player\'s name and stores it in a variable?',opts:['input = name("What is your name? ")','name == input("What is your name? ")','name = input("What is your name? ")'],code:1,a:2,hint:'Variable name, then one =, then input().',why:'name = input(...) stores what the player types in the variable name.'},
+ {s:1,q:'Which variable name is allowed in Python?',opts:['player name','player_name','1player'],code:1,a:1,hint:'No spaces. Don\'t start with a number.',why:'Use _ instead of a space, and don\'t start with a number.'},
+ {s:1,ctx:'The player types Sam.',code_q:'name = input("What is your name? ")\nprint("Welcome,", name)',q:'What will the screen show?',opts:['Welcome, name','Welcome, Sam','Welcome,'],a:1,hint:'name is outside the quotation marks, so Python uses its value.',why:'name stores "Sam", so it shows Welcome, Sam.'},
+ {s:1,ctx:'The player types Sam.',code_q:'name = input("What is your name? ")\nprint("Welcome, name")',q:'What will the screen show?',opts:['Welcome, Sam','Welcome, name','An error'],a:1,hint:'Look: is name inside or outside the quotation marks?',why:'name is inside the quotation marks, so Python prints the word "name". Put it outside: print("Welcome,", name)'},
+ {s:1,q:'Your quiz must tell the player there are 5 questions. Which line does that?',opts:['print("There are 5 questions.")','print(There are 5 questions.)','input("There are 5 questions.")'],code:1,a:0,hint:'Showing text = print() with quotation marks.',why:'print() displays the message on the screen.'},
+
+ // STEP 2: questions and options
+ {s:2,q:'Which line shows the answer option 2. Mars on the screen?',opts:['print(2. Mars)','print"2. Mars"','print("2. Mars")'],code:1,a:2,hint:'You need brackets ( ) AND quotation marks " ".',why:'print("2. Mars") has brackets and quotation marks.'},
+ {s:2,q:'How many print() lines do you need to show ONE question and its 3 answers?',opts:['1','4','10'],a:1,hint:'1 line for the question + 1 line for each answer.',why:'1 for the question and 3 for the answers: 4 print() lines.'},
+ {s:2,q:'Which order is right for each question in your quiz?',opts:['Check the answer → show the question → ask for the answer','Show the question → ask for the answer → check the answer','Ask for the answer → check it → show the question'],a:1,hint:'The player needs to SEE the question first.',why:'Show the question, ask for the answer with input(), then check it with if / else.'},
+
+ // STEP 3: input gives a string, selection
+ {s:3,q:'input() always gives back which data type?',opts:['Integer (whole number)','Float (decimal number)','String (text)'],a:2,hint:'Even if the player types a number, it comes back as text.',why:'input() always gives back a String.'},
+ {s:3,ctx:'The player types 2.',code_q:'answer = input("Enter 1, 2 or 3: ")',q:'What is stored in answer?',opts:['"2" (a String)','2 (an Integer)','Nothing'],a:0,hint:'What data type does input() give back?',why:'input() gives back a String, so answer stores "2".'},
+ {s:3,q:'Finish the sentence: Selection allows a program to...',opts:['repeat instructions.','store data in memory.','make a decision based on a condition.'],a:2,hint:'Your quiz decides: Correct! or Incorrect!',why:'Selection allows a program to make a decision based on a condition.'},
+ {s:3,q:'Which symbol means "equal to"?',opts:['=','==','!='],code:1,a:1,hint:'One = assigns a value. To check, use two.',why:'== means equal to. = assigns a value.'},
+ {s:3,q:'Which line checks if the player\'s answer is 2?',opts:['if answer = "2":','if answer == 2','if answer == "2":'],code:1,a:2,hint:'You need ==, quotation marks around 2, and a colon.',why:'if answer == "2": uses ==, the String "2", and ends with a colon.'},
+ {s:3,ctx:'This code has an error.',code_q:'if answer == "2"\n    print("Correct!")',q:'What is missing?',opts:['A colon : at the end of line 1','Quotation marks around answer','The word else'],a:0,hint:'Look at the very end of line 1.',why:'An if line must end with a colon :'},
+ {s:3,q:'Which code is set out correctly?',opts:['if answer == "2":\nprint("Correct!")','if answer == "2":\n    print("Correct!")','print("Correct!")\nif answer == "2":'],code:1,a:1,hint:'The line under the if must be indented (moved in).',why:'The print() under the if is indented by 4 spaces.'},
+ {s:3,ctx:'The player typed 2.',code_q:'answer = "2"\n\nif answer == "2":\n    print("Correct!")\nelse:\n    print("Incorrect!")',q:'What will the screen show?',opts:['Correct!','Incorrect!','Correct! and Incorrect!'],a:0,hint:'Is "2" equal to "2"?',why:'The condition is True, so the if part runs: Correct!'},
+ {s:3,ctx:'The player typed 3.',code_q:'answer = "3"\n\nif answer == "2":\n    print("Correct!")\nelse:\n    print("Incorrect!")',q:'What will the screen show?',opts:['Correct!','Incorrect!','Nothing'],a:1,hint:'Is "3" equal to "2"?',why:'The condition is False, so the else part runs: Incorrect!'},
+ {s:3,q:'When does the else part run?',opts:['When the condition is True','When the condition is False','Every time'],a:1,hint:'else = "otherwise".',why:'else runs when the condition is False.'},
+ {s:3,ctx:'Question 1: Which planet is known as the Red Planet?  1. Venus  2. Mars  3. Jupiter',q:'Which line checks for the correct answer?',opts:['if answer == "1":','if answer == "2":','if answer == "3":'],code:1,a:1,hint:'Which number is Mars?',why:'Mars is option 2, so check if answer == "2":'},
+ {s:3,ctx:'Question 3: In which country would you find the Eiffel Tower?  1. Italy  2. Spain  3. France',q:'Which line checks for the correct answer?',opts:['if answer == "3":','if answer == "1":','if answer == "France":'],code:1,a:0,hint:'The player types a number, not the word.',why:'France is option 3, and the player types 3: if answer == "3":'},
+ {s:3,q:'If the player is wrong, your quiz should also show the correct answer. Which line does that?',opts:['input("Incorrect! The answer is 2. Mars")','print(Incorrect! The answer is 2. Mars)','print("Incorrect! The answer is 2. Mars")'],code:1,a:2,hint:'Showing a message = print() with quotation marks.',why:'print() with the message in quotation marks.'},
+
+ // STEP 4: finish
+ {s:4,q:'Which line shows the final message?',opts:['print("QUIZ COMPLETE!")','QUIZ COMPLETE!','input("QUIZ COMPLETE!")'],code:1,a:0,hint:'Showing text = print().',why:'print("QUIZ COMPLETE!") shows the final message.'},
+ {s:4,q:'Which line says goodbye using the player\'s name?',opts:['print("Goodbye, name")','print("Goodbye,", name)','print(Goodbye, name)'],code:1,a:1,hint:'The variable must be OUTSIDE the quotation marks.',why:'print("Goodbye,", name) uses the value stored in name.'},
+ {s:4,q:'How many if / else checks will your quiz need?',opts:['1','5 (one for each question)','10'],a:1,hint:'How many questions are in your quiz?',why:'5 questions, so 5 if / else checks.'},
+ {s:4,q:'When should you test (run) your program?',opts:['Only at the very end','Never','After adding each question'],a:2,hint:'It\'s easier to find a mistake early.',why:'Test after adding each question, so you find mistakes early.'}
+];
+
+const KEY='python-quiz-practice-v1';
+const state={i:-1,ans:{},score:0};
+try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d&&typeof d.i==='number'&&d.i<=Q.length)Object.assign(state,d)}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+
+const $=s=>document.querySelector(s);
+const stage=$('#stage');
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function hl(line){
+  const re=/("[^"]*"?)|(\b\d+(?:\.\d+)?\b)|(\b(?:if|elif|else|for|while|in)\b)|(\b(?:print|input|int|range)\b)/g;
+  let out='',last=0,m;
+  while((m=re.exec(line))){out+=esc(line.slice(last,m.index));out+='<span class="'+(m[1]?'t-str':m[2]?'t-num':m[3]?'t-kw':'t-fn')+'">'+esc(m[0])+'</span>';last=re.lastIndex}
+  return out+esc(line.slice(last));
+}
+function codeBlock(c){return '<div class="code"><pre>'+c.split('\n').map(l=>'<span class="ln">'+(hl(l)||' ')+'</span>').join('')+'</pre></div>'}
+function stepCls(s){return 'st'+s}
+
+/* sound: short beeps, generated in the browser */
+let actx=null;
+function tone(seq){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();let t=actx.currentTime+.01;
+  seq.forEach(function(x){const o=actx.createOscillator(),g=actx.createGain();o.type=x[2]||'sine';o.frequency.value=x[0];g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.1,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+x[1]);o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+x[1]+.03);t+=x[1]*.75})}catch(e){}}
+const OK=[[660,.12],[990,.2]],NO=[[260,.16,'triangle'],[200,.22,'triangle']];
+
+function renderIntro(){
+  $('#app').className='app';
+  stage.innerHTML='<div class="slide intro"><h1>Get ready for <span>THE PYTHON QUIZ!</span></h1>'+
+  '<p class="lead">Next lesson you will program your own quiz in Python. These '+Q.length+' questions check you know everything you need.</p>'+
+  '<div class="steps">'+[1,2,3,4].map(k=>'<div class="'+stepCls(k)+'"><b>'+STEPS[k].split(':')[0]+'</b>'+STEPS[k].split(': ')[1]+'</div>').join('')+'</div>'+
+  '<div class="rules"><p>✔ Pick an answer.</p><p>✔ If it is wrong, read the hint and try again.</p><p>✔ You can only move on when you get it right.</p><p>★ 10 points if you get it right first time, 5 points on the second try.</p></div>'+
+  '<button class="btn primary big" id="go">Start →</button></div>';
+  $('#go').onclick=()=>go(0);
+  $('#prev').disabled=true;$('#next').hidden=true;$('#pos').textContent='';
+}
+function renderQ(){
+  const q=Q[state.i];const L='ABC';
+  $('#app').className='app '+stepCls(q.s);
+  const a=state.ans[state.i]||{tries:[],done:false};
+  stage.innerHTML='<div class="slide"><div class="meta"><span class="pill">'+STEPS[q.s]+'</span><span>Question '+(state.i+1)+' of '+Q.length+'</span></div>'+
+   (q.ctx?'<p class="ctx">'+esc(q.ctx)+'</p>':'')+(q.code_q?codeBlock(q.code_q):'')+
+   '<p class="qtext">'+esc(q.q)+'</p>'+
+   '<div class="opts">'+q.opts.map((o,k)=>'<button class="opt" data-k="'+k+'"><span class="letter">'+L[k]+'</span><span>'+(q.code?'<code>'+o.split('\n').map(hl).join('\n')+'</code>':esc(o))+'</span></button>').join('')+'</div>'+
+   '<div id="fb"></div></div>';
+  document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>pick(+b.dataset.k,b));
+  draw(a,false);
+  $('#prev').disabled=false;$('#next').hidden=false;
+  $('#pos').textContent=(state.i+1)+' / '+Q.length;
+}
+function pick(k,el){
+  const q=Q[state.i];const a=state.ans[state.i]||(state.ans[state.i]={tries:[],done:false});
+  if(a.done||a.tries.indexOf(k)>=0)return;
+  a.tries.push(k);
+  if(k===q.a){a.done=true;a.pts=a.tries.length===1?10:(a.tries.length===2?5:0);state.score+=a.pts;tone(OK);if(a.pts)confetti(a.pts===10?28:12);bumpPts()}
+  else tone(NO);
+  save();draw(a,true);
+  try{$('#fb').scrollIntoView({block:'nearest',behavior:'smooth'})}catch(e){}
+}
+function draw(a,fresh){
+  const q=Q[state.i];
+  document.querySelectorAll('.opt').forEach((b,j)=>{b.className='opt';b.disabled=false;
+    if(a.tries.indexOf(j)>=0&&j!==q.a){b.classList.add('wrong');b.disabled=true;if(!fresh)b.style.animation='none'}
+    if(a.done){b.disabled=true;if(j===q.a){b.classList.add('right');if(!fresh)b.style.animation='none'}else if(a.tries.indexOf(j)<0)b.classList.add('dim')}});
+  let h='';
+  if(a.done)h='<div class="fb good"><b class="v">Correct!'+(a.pts?' +'+a.pts:'')+'</b><p>'+esc(q.why)+'</p></div>';
+  else if(a.tries.length)h='<div class="fb bad"><b class="v">Not quite. Try again!</b><p><b>Hint:</b> '+esc(q.hint)+'</p></div>';
+  else h='<p class="lock">🔒 Pick the right answer to unlock Next.</p>';
+  $('#fb').innerHTML=h;
+  const n=$('#next');n.disabled=!a.done;n.classList.toggle('pulse',!!a.done);
+  n.textContent=state.i===Q.length-1?'Finish →':'Next →';
+  $('#bar').style.width=(Object.keys(state.ans).filter(k=>state.ans[k].done).length/Q.length*100)+'%';
+  $('#pts').textContent=state.score;
+}
+function renderEnd(){
+  $('#app').className='app';
+  const first=Q.filter((q,k)=>state.ans[k]&&state.ans[k].tries.length===1).length;
+  const r=first/Q.length;const stars=r>=.8?3:r>=.5?2:1;
+  stage.innerHTML='<div class="slide end"><h1>'+(stars===3?'Amazing!':stars===2?'Great work!':'Well done!')+'</h1>'+
+   '<div class="stars">'+[0,1,2].map(k=>'<svg viewBox="0 0 24 24" aria-hidden="true"><path class="s'+(k<stars?' on':'')+'" style="animation-delay:'+(.2+k*.3)+'s" d="M12 2l3 6.6 7.2.8-5.4 4.9 1.5 7.1L12 17.8 5.7 21.4l1.5-7.1L1.8 9.4 9 8.6z"/></svg>').join('')+'</div>'+
+   '<div class="big-num">★ '+state.score+'</div><p class="lead"><b>'+first+' of '+Q.length+'</b> right first time.</p>'+
+   '<p class="lead">You\'re ready! Next lesson, you will <b>program THE PYTHON QUIZ!</b> yourself.</p>'+
+   '<button class="btn" id="again">↺ Try the quiz again</button></div>';
+  $('#again').onclick=()=>{state.ans={};state.score=0;save();go(0)};
+  $('#next').hidden=true;$('#prev').disabled=false;$('#pos').textContent='';$('#bar').style.width='100%';$('#pts').textContent=state.score;
+  confetti(70);tone([[523,.14],[659,.14],[784,.14],[1047,.4]]);
+}
+function bumpPts(){const c=$('#chip');c.classList.remove('bump');void c.offsetWidth;c.classList.add('bump')}
+function render(){$('#next').classList.remove('pulse');if(state.i<0)renderIntro();else if(state.i>=Q.length)renderEnd();else renderQ();$('main').scrollTop=0;save()}
+function go(i){state.i=Math.max(-1,Math.min(Q.length,i));render()}
+$('#next').onclick=()=>{if(state.i>=0&&state.i<Q.length&&!(state.ans[state.i]&&state.ans[state.i].done))return;go(state.i+1)};
+$('#prev').onclick=()=>go(state.i-1);
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'){if(!$('#next').disabled&&!$('#next').hidden)$('#next').click()}
+  else if(e.key==='ArrowLeft'&&state.i>=0)go(state.i-1);
+  else if(state.i>=0&&state.i<Q.length&&/^[abc]$/i.test(e.key)){const b=document.querySelector('.opt[data-k="'+'abc'.indexOf(e.key.toLowerCase())+'"]');if(b&&!b.disabled)b.click()}
+});
+function confetti(n){const cols=['#1f63d6','#d9480f','#0b7f8f','#a61e8c','#ffd43b','#2b8a3e'];
+  for(let k=0;k<n;k++){const d=document.createElement('div');d.className='confetti';d.style.left=Math.random()*100+'vw';d.style.background=cols[k%cols.length];
+    d.style.setProperty('--dx',(Math.random()*160-80)+'px');d.style.setProperty('--rot',(Math.random()*720-360)+'deg');d.style.animationDelay=(Math.random()*.3)+'s';document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}}
+render();
+})();
+</script>
+</body>
+</html>
